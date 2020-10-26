@@ -9,18 +9,20 @@ part of http://ThePythonGamebook.com
 """
 
 import pygame
-#import pygame.locals
+# import pygame.locals
 import pygame.freetype  # not automatically loaded when importing pygame!
 import pygame.gfxdraw
 import random
-#import os
-#import sys
+
+
+# import os
+# import sys
 
 
 class VectorSprite(pygame.sprite.Sprite):
-    """base class for sprites. this class inherits from pygames sprite class"""
+    """base class for sprites. this class inherits from pygame sprite class"""
 
-    number = 0 # unique number for each sprite
+    number = 0  # unique number for each sprite
 
     # numbers = {} # { number, Sprite }
 
@@ -33,7 +35,7 @@ class VectorSprite(pygame.sprite.Sprite):
         self.number = VectorSprite.number  # unique number for each sprite
         VectorSprite.number += 1
         # VectorSprite.numbers[self.number] = self
-        #self.visible = False
+        # self.visible = False
         self.create_image()
         self.distance_traveled = 0  # in pixel
         # self.rect.center = (-300,-300) # avoid blinking image in topleft corner
@@ -62,9 +64,9 @@ class VectorSprite(pygame.sprite.Sprite):
             self.angle = 0  # facing right?
         if "radius" not in kwargs:
             self.radius = 5
-        #if "width" not in kwargs:
+        # if "width" not in kwargs:
         #    self.width = self.radius * 2
-        #if "height" not in kwargs:
+        # if "height" not in kwargs:
         #    self.height = self.radius * 2
         if "color" not in kwargs:
             # self.color = None
@@ -103,10 +105,10 @@ class VectorSprite(pygame.sprite.Sprite):
 
     def kill(self):
         # check if this is a boss and kill all his underlings as well
-        tokill = []
-        for s in Viewer.allgroup:
-            if "boss" in s.__dict__ and s.boss == self:
-                tokill.append(s)
+        tokill = [s for s in Viewer.allgroup if "boss" in s.__dict__ and s.boss == self]
+        #for s in Viewer.allgroup:
+        #    if "boss" in s.__dict__ and s.boss == self:
+        #        tokill.append(s)
         for s in tokill:
             s.kill()
         # if self.number in self.numbers:
@@ -123,8 +125,8 @@ class VectorSprite(pygame.sprite.Sprite):
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
         self.rect.center = (round(self.pos[0], 0), round(self.pos[1], 0))
-        #self.width = self.rect.width
-        #self.height = self.rect.height
+        # self.width = self.rect.width
+        # self.height = self.rect.height
 
     def rotate(self, by_degree):
         """rotates a sprite and changes it's angle by by_degree"""
@@ -156,7 +158,7 @@ class VectorSprite(pygame.sprite.Sprite):
         self.age += seconds
         if self.age < 0:
             return
-        #self.visible = True
+        # self.visible = True
         self.distance_traveled += self.move.length() * seconds
         # ----- kill because... ------
         if self.hitpoints <= 0:
@@ -199,7 +201,7 @@ class VectorSprite(pygame.sprite.Sprite):
                 self.pos.y = 0
                 self.move.y *= -1
             if self.warp_on_edge:
-                self.pos.y =0
+                self.pos.y = 0
         # -------- right edge -----
         if self.pos.x > Viewer.width:
             if self.stop_on_edge:
@@ -227,27 +229,27 @@ class VectorSprite(pygame.sprite.Sprite):
 
 class Flytext(VectorSprite):
     def __init__(
-        self,
-        pos=pygame.math.Vector2(50, 50),
-        move=pygame.math.Vector2(0, -50),
-        text="hallo",
-        color=(255, 0, 0),
-        bgcolor=None,
-        max_age=0.5,
-        age=0,
-        acceleration_factor=1.0,
-        fontsize=48,
-        textrotation=0,
-        style=pygame.freetype.STYLE_STRONG,
-        alpha_start=255,
-        alpha_end=255,
-        width_start=None,
-        width_end=None,
-        height_start=None,
-        height_end=None,
-        rotate_start=0,
-        rotate_end=0,
-        picture = None,
+            self,
+            pos=pygame.math.Vector2(50, 50),
+            move=pygame.math.Vector2(0, -50),
+            text="hallo",
+            color=(255, 0, 0),
+            bgcolor=None,
+            max_age=0.5,
+            age=0,
+            acceleration_factor=1.0,
+            fontsize=48,
+            textrotation=0,
+            style=pygame.freetype.STYLE_STRONG,
+            alpha_start=255,
+            alpha_end=255,
+            width_start=None,
+            width_end=None,
+            height_start=None,
+            height_end=None,
+            rotate_start=0,
+            rotate_end=0,
+            picture=None,
     ):
         """Create a flying VectorSprite with text or picture that disappears after a while
 
@@ -292,7 +294,7 @@ class Flytext(VectorSprite):
         self.height_start = height_start
         self.height_end = height_end
         self.picture = picture
-        #print( "my picture is:", self.picture)
+        # print( "my picture is:", self.picture)
         if width_start is not None:
             self.width_diff_per_second = (width_end - width_start) / max_age
             self.recalc_each_frame = True
@@ -318,17 +320,17 @@ class Flytext(VectorSprite):
             move=move,
             max_age=max_age,
             age=age,
-            picture = picture,
+            picture=picture,
         )
         self._layer = 7  # order of sprite layers (before / behind other sprites)
         # acceleration_factor  # if < 1, Text moves slower. if > 1, text moves faster.
 
     def create_image(self):
         if self.picture is not None:
-            #print("picture", self)
+            # print("picture", self)
             self.image = self.picture
         else:
-            #print("no picture", self)
+            # print("no picture", self)
             myfont = Viewer.font
             # text, textrect = myfont.render(
             # fgcolor=self.color,
@@ -406,20 +408,20 @@ class Flytext(VectorSprite):
 
 class Fire(VectorSprite):
     width = 8
-    chance_to_stop = .1 # per second
+    chance_to_stop = .1  # per second
     damage_per_second = 1
 
     def _overwrite_parameters(self):
         self.kill_with_boss = True
         self.move_with_boss = True
-        self.color = (255,200,0)
+        self.color = (255, 200, 0)
 
     def create_image(self):
         self.image = pygame.Surface((self.width, self.width))
-        #self.color = randomize_colors(self.color, 1 )
-        self.color = (255,random.randint(128,255),0)
-        pygame.draw.circle(self.image, self.color, (self.width//2, self.width//2), self.width//2)
-        self.image.set_colorkey((0,0,0))
+        # self.color = randomize_colors(self.color, 1 )
+        self.color = (255, random.randint(128, 255), 0)
+        pygame.draw.circle(self.image, self.color, (self.width // 2, self.width // 2), self.width // 2)
+        self.image.set_colorkey((0, 0, 0))
         self.image.convert_alpha()
         # self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
@@ -427,12 +429,12 @@ class Fire(VectorSprite):
 
     def update(self, seconds):
         super().update(seconds)
-        b = self.bossvector.rotate(-self.bossangle+self.boss.get_angle())
+        b = self.bossvector.rotate(-self.bossangle + self.boss.get_angle())
         self.pos = self.boss.pos + b * 0.7
         self.create_image()
         # --- small chance of crew to extinguish fire ---
         if self.age > 1:
-            if random.random() * seconds  < self.chance_to_stop / 60 :
+            if random.random() * seconds < self.chance_to_stop / 60:
                 self.kill()
         # ---- start smoking after some time ----
         if self.age > 0.15:
@@ -442,7 +444,6 @@ class Fire(VectorSprite):
         self.boss.hitpoints -= self.damage_per_second * seconds
 
 
-
 class Hitpointbar(VectorSprite):
     height = 5
 
@@ -450,48 +451,56 @@ class Hitpointbar(VectorSprite):
         self.kill_with_boss = True
         self.move_with_boss = True
 
-
     def create_image(self):
         self.image = pygame.Surface((self.boss.width, self.height))
-        #self.image.fill((0,255,0))
-        percent = self.boss.width  * (self.boss.hitpoints / self.boss.hitpointsfull)
-        pygame.draw.rect(self.image, (0,255,0), (0,0, int(round(percent,0)), self.height))
-        pygame.draw.rect(self.image, (0,64,0), (0,0,self.boss.width,self.height), 1)
-        self.image.set_colorkey((0,0,0,))
+        # self.image.fill((0,255,0))
+        percent = self.boss.width * (self.boss.hitpoints / self.boss.hitpointsfull)
+        pygame.draw.rect(self.image, (0, 255, 0), (0, 0, int(round(percent, 0)), self.height))
+        pygame.draw.rect(self.image, (0, 64, 0), (0, 0, self.boss.width, self.height), 1)
+        self.image.set_colorkey((0, 0, 0,))
         self.image.convert_alpha()
         self.rect = self.image.get_rect()
 
-        #self.rect.center = self.pos.x, self.pos.y
+        # self.rect.center = self.pos.x, self.pos.y
 
     def update(self, seconds):
         self.create_image()
-        #super().update(seconds)
+        # super().update(seconds)
         self.rect.center = self.boss.rect.centerx, self.boss.rect.centery - self.boss.height
+
 
 class Ship(VectorSprite):
     snap_distance = 15
     speed = 25
     width = 40
     height = 40
-    rot_speed= 15
+    rot_speed = 15
     bounty = 1
-
-
-
 
     def _overwrite_parameters(self):
         self.index_of_waypoint = 0
         self.hitpoints = 100
         self.hitpointsfull = 100
-        self.color =  (0, 0, 200)
+        self.color = (0, 0, 200)
         Hitpointbar(boss=self)
+
+    def final_explosion(self):
+        for _ in range(50):
+                m = pygame.math.Vector2()
+                m.from_polar((random.random() * 15 + 5.9, random.randint(0, 360)))
+                a = m.as_polar()[1]
+                Spark2(pos=pygame.math.Vector2(self.pos.x, self.pos.y),
+                       move=m,
+                       angle=a,
+                       color=self.color,
+                       max_age=1.5 + random.random() * 1.0)
 
     def next_waypoint(self):
         self.index_of_waypoint += 1
         self.index_of_waypoint = self.index_of_waypoint % len(Viewer.points)
 
     def update(self, seconds):
-        #if random.random() < 0.1:
+        # if random.random() < 0.1:
         #    Bubble(pos=pygame.math.Vector2(self.pos[0], self.pos[1]),
         #           color=self.color,
         #           max_age=6,
@@ -505,29 +514,31 @@ class Ship(VectorSprite):
             self.next_waypoint()
         if self.hitpoints <= 0:
             Viewer.gold += self.bounty
+            self.final_explosion()
         super().update(seconds)
 
     def create_image(self):
-        self.image = pygame.Surface((self.width ,self.width))
-        #pygame.gfxdraw.polygon(self.image, ((0,0), (50, 25), (0,50)), pygame.Color("red"))
+        self.image = pygame.Surface((self.width, self.width))
+        # pygame.gfxdraw.polygon(self.image, ((0,0), (50, 25), (0,50)), pygame.Color("red"))
         pygame.draw.polygon(self.image, self.color,
-                            ((0,0),
-                             (self.width, self.width//2),
+                            ((0, 0),
+                             (self.width, self.width // 2),
                              (0, self.width),
-                             (self.width//2, self.width//2)
-                             ), 3 )
-        self.image.set_colorkey((0,0,0))
+                             (self.width // 2, self.width // 2)
+                             ), 0)
+        self.image.set_colorkey((0, 0, 0))
         self.image.convert_alpha()
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
         self.rect.center = (int(round(self.pos.x, 0)), int(round(self.pos.y, 0)))
 
+
 class Ship2(Ship):
     # red ship
-    snap_distance2 = 88 # how many pixels before waypoint to begin with turning
+    snap_distance2 = 88  # how many pixels before waypoint to begin with turning
     width = 40
     speed = 35
-    rot_speed = 45 # Grad / seconds
+    rot_speed = 45  # Grad / seconds
     height = 40
     color = (200, 0, 0)
     bounty = 2
@@ -547,7 +558,7 @@ class Ship2(Ship):
     def update(self, seconds):
         m = pygame.math.Vector2(self.speed, 0)
         m.from_polar((-self.speed, self.get_angle()))
-        #if random.random() < 0.5:
+        # if random.random() < 0.5:
         #    Bubble(pos=pygame.math.Vector2(self.pos[0], self.pos[1]),
         #       color=self.color,
         #       max_age=6,
@@ -560,20 +571,22 @@ class Ship2(Ship):
         m2 = turnpointvector - self.pos
         new_angle = self.move.as_polar()[1]
         angle2 = m2.as_polar()[1]
-        diff = (self.get_angle() - angle2 - 0) % 360 #new_angle -0) % 360
+        diff = (self.get_angle() - angle2 - 0) % 360  # new_angle -0) % 360
         if diff > 180:
             self.rotate(self.rot_speed * seconds)
         elif diff < 180:
             self.rotate(-self.rot_speed * seconds)
 
-        #self.set_angle(self.move.as_polar()[1])
+        # self.set_angle(self.move.as_polar()[1])
         if self.pos.distance_to(waypointvector) < self.snap_distance:
             self.next_waypoint()
         if self.pos.distance_to(turnpointvector) < self.snap_distance2:
             self.next_turnpoint()
         if self.hitpoints <= 0:
             Viewer.gold += self.bounty
-        VectorSprite.update(self,seconds)
+            self.final_explosion()
+        VectorSprite.update(self, seconds)
+
 
 class Ship3(Ship):
     rot_speed = 35
@@ -592,7 +605,7 @@ class Ship3(Ship):
         self.color = (0, 200, 0)
 
     def update(self, seconds):
-        #if random.random() < 0.5:
+        # if random.random() < 0.5:
         #    Bubble(pos=pygame.math.Vector2(self.pos[0], self.pos[1]),
         #           color=self.color,
         #           max_age=6,
@@ -600,10 +613,10 @@ class Ship3(Ship):
         #           )
         waypointvector = Viewer.points[self.index_of_waypoint]
         m = waypointvector - self.pos
-        #self.move = waypointvector - self.pos
-        #self.move.scale_to_length(self.speed)
+        # self.move = waypointvector - self.pos
+        # self.move.scale_to_length(self.speed)
         new_angle = m.as_polar()[1]
-        diff = (self.get_angle() - new_angle -0) % 360
+        diff = (self.get_angle() - new_angle - 0) % 360
         if diff > 180:
             self.rotate(self.rot_speed * seconds)
         elif diff < 180:
@@ -616,20 +629,22 @@ class Ship3(Ship):
             self.speed *= 1.1
         self.speed = between(self.speed, self.speed_min, self.speed_max)
 
-        #self.set_angle(self.move.as_polar()[1])
+        # self.set_angle(self.move.as_polar()[1])
         if self.pos.distance_to(waypointvector) < self.snap_distance:
             self.next_waypoint()
         if self.hitpoints <= 0:
             Viewer.gold += self.bounty
-        VectorSprite.update(self,seconds)
+            self.final_explosion()
+        VectorSprite.update(self, seconds)
+
 
 class Cannon(VectorSprite):
     width = 50
     rot_speed = 60
-    reload_time = 1.25  # seconds
+    reload_time = 0.25  # seconds
     shooting_radius_max = 250
     shooting_radius_min = 25
-    exclusive_radius = 90 # cannons can not be placed closer to each other
+    exclusive_radius = 90  # cannons can not be placed closer to each other
 
     def _overwrite_parameters(self):
         self.ready_to_fire_time = 0
@@ -642,43 +657,44 @@ class Cannon(VectorSprite):
             self.rotate(self.rot_speed * seconds)
         elif diff < 180:
             self.rotate(-self.rot_speed * seconds)
-        #self.move.from_polar((self.speed, self.get_angle()))
+        # self.move.from_polar((self.speed, self.get_angle()))
         if abs(diff) < 5:
             self.fire()
 
     def fire(self):
         if self.ready_to_fire_time > self.age:
-            return # still reloading
+            return  # still reloading
         self.ready_to_fire_time = self.age + self.reload_time
-        #p = pygame.math.Vector2(self.pos.x, self.pos.y)
+        # p = pygame.math.Vector2(self.pos.x, self.pos.y)
         angle = self.get_angle()
         m = pygame.math.Vector2(Beam.speed, 0)
         m.from_polar((Beam.speed, angle))
-        barrel = pygame.math.Vector2(1,0)
-        barrel.from_polar((self.width//2, angle))
-        Beam(pos = pygame.math.Vector2(self.pos.x, self.pos.y) + barrel,
-             move = m,
+        barrel = pygame.math.Vector2(1, 0)
+        barrel.from_polar((self.width // 2, angle))
+        Beam(pos=pygame.math.Vector2(self.pos.x, self.pos.y) + barrel,
+             move=m,
              angle=angle,
-             max_distance = self.shooting_radius_max - self.width//2,
-             color=(222,0,111))
+             max_distance=self.shooting_radius_max - self.width // 2,
+             color=(222, 0, 111))
 
     def create_image(self):
         self.image = pygame.Surface((self.width, self.width))
         pygame.draw.circle(
             self.image, self.color,
-            (self.width//2, self.width //2),
-            self.width//3,
+            (self.width // 2, self.width // 2),
+            self.width // 3,
             5
         )
         pygame.draw.rect(self.image, self.color,
-                         (self.width//3, self.width//2-5,
+                         (self.width // 3, self.width // 2 - 5,
                           self.width, 10))
         self.image.set_colorkey((0, 0, 0))
-        #self.image.set_alpha(self.alpha_start - self.age * self.alpha_diff_per_second)
+        # self.image.set_alpha(self.alpha_start - self.age * self.alpha_diff_per_second)
         self.image.convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = int(self.pos[0]), int(self.pos[1])
         self.image0 = self.image.copy()
+
 
 class Beam(VectorSprite):
     """a glowing laser beam"""
@@ -689,20 +705,19 @@ class Beam(VectorSprite):
 
     def _overwrite_parameters(self):
         self.kill_on_edge = True
-        #self.color = randomize_colors(self.color, 50)
-
+        # self.color = randomize_colors(self.color, 50)
 
     def create_image(self):
-        r,g,b = randomize_colors(self.color, 50)
+        r, g, b = randomize_colors(self.color, 50)
         self.image = pygame.Surface((self.width, self.height))
         pygame.gfxdraw.filled_polygon(self.image,
-                                      ((0, self.height//2),
+                                      ((0, self.height // 2),
                                        (self.width * 0.9, 0),
-                                       (self.width, self.height//2),
+                                       (self.width, self.height // 2),
                                        (self.width * 0.9, self.height),
                                        ),
-                                      (r,g,b))
-        self.image.set_colorkey((0,0,0))
+                                      (r, g, b))
+        self.image.set_colorkey((0, 0, 0))
         self.image.convert_alpha()
         self.image0 = self.image.copy()
         self.rect = self.image.get_rect()
@@ -710,7 +725,7 @@ class Beam(VectorSprite):
         self.set_angle(self.angle)
 
     def update(self, seconds):
-        #self.create_image()
+        # self.create_image()
 
         super().update(seconds)
 
@@ -732,16 +747,17 @@ class Spark2(VectorSprite):
         self.rect = self.image.get_rect()
         self.image0 = self.image.copy()
 
+
 class Spark(VectorSprite):
     width = 10
     height = 1
     acc = 1.01
 
     def create_image(self):
-        self.image = pygame.Surface((10,3))
-        pygame.draw.line(self.image, self.color, (0,1), (10,1))
-        self.image.set_colorkey((0,0,0))
-        #self.image.fill(randomize_colors(self.color, 20))
+        self.image = pygame.Surface((10, 3))
+        pygame.draw.line(self.image, self.color, (0, 1), (10, 1))
+        self.image.set_colorkey((0, 0, 0))
+        # self.image.fill(randomize_colors(self.color, 20))
         self.image.convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = self.pos.x, self.pos.y
@@ -753,21 +769,20 @@ class Spark(VectorSprite):
         super().update(seconds)
 
 
-
 class Smoke(VectorSprite):
     """a round fragment or bubble particle, fading out"""
 
     def _overwrite_parameters(self):
-        #self.speed = random.randint(10, 50)
+        # self.speed = random.randint(10, 50)
         self.start_radius = 1
 
         self.radius = 1
-        self.end_radius = 10 #random.randint(15,20)
-        #if self.max_age is None:
-        self.max_age = 7.5 #+ random.random() * 2.5
+        self.end_radius = 10  # random.randint(15,20)
+        # if self.max_age is None:
+        self.max_age = 7.5  # + random.random() * 2.5
         self.kill_on_edge = True
         self.kill_with_boss = False  # VERY IMPORTANT!!!
-        #if self.move == pygame.math.Vector2(0, 0):
+        # if self.move == pygame.math.Vector2(0, 0):
         #    self.move = pygame.math.Vector2(1, 0)
         #    self.move *= self.speed
         #    a, b = 0, 360
@@ -776,11 +791,10 @@ class Smoke(VectorSprite):
         self.alpha_end = 0
         self.alpha_diff_per_second = (self.alpha_start - self.alpha_end) / self.max_age
         self.color = (10, 10, 10)
-        #self.color = randomize_colors(color=self.color, by=35)
-
+        # self.color = randomize_colors(color=self.color, by=35)
 
     def create_image(self):
-        #self.radius = self.start_radius +
+        # self.radius = self.start_radius +
         self.image = pygame.Surface((2 * self.radius, 2 * self.radius))
         pygame.draw.circle(
             self.image, self.color, (self.radius, self.radius), self.radius
@@ -789,21 +803,18 @@ class Smoke(VectorSprite):
         self.image.set_alpha(self.alpha_start - self.age * self.alpha_diff_per_second)
         self.image.convert_alpha()
         self.rect = self.image.get_rect()
-        self.rect.center = int(round(self.pos.x,0)), int(round(self.pos.y,0))
-        #self.rect.center=(int(round(self.pos[0],0)), int(round(self.pos[1],0)))
-
+        self.rect.center = int(round(self.pos.x, 0)), int(round(self.pos.y, 0))
+        # self.rect.center=(int(round(self.pos[0],0)), int(round(self.pos[1],0)))
 
     def update(self, seconds):
-        #self.create_image()
-        self.radius = ( self.end_radius / self.max_age) * self.age
+        # self.create_image()
+        self.radius = (self.end_radius / self.max_age) * self.age
         self.radius = int(round(self.radius, 0))
         self.create_image()
         self.move = Viewer.windvector * seconds
         super().update(seconds)
         self.image.set_alpha(self.alpha_start - self.age * self.alpha_diff_per_second)
         self.image.convert_alpha()
-
-
 
 
 class Viewer:
@@ -817,33 +828,32 @@ class Viewer:
     lives = 0
     maxwind = 400
 
-
     # playergroup = None # pygame sprite Group only for players
 
     def __init__(
-        self,
-        width=800,
-        height=600,
+            self,
+            width=800,
+            height=600,
     ):
 
         Viewer.width = width
         Viewer.height = height
-        Viewer.screenrect =pygame.Rect(0,0, width, height)
-        Viewer.points = [(0,0), (width+100, height+100)]
+        Viewer.screenrect = pygame.Rect(0, 0, width, height)
+        Viewer.points = [(0, 0), (width + 100, height + 100)]
         Viewer.windvector = pygame.math.Vector2()
         Viewer.windvector.from_polar((random.randint(50, 250), random.randint(0, 360)))
 
         # ---- pygame init
         pygame.init()
-        pygame.mixer.init(11025) # raises exception on fail
+        # pygame.mixer.init(11025) # raises exception on fail
         # Viewer.font = pygame.font.Font(os.path.join("data", "FreeMonoBold.otf"),26)
         # fontfile = os.path.join("data", "fonts", "DejaVuSans.ttf")
         # --- font ----
         # if you have your own font:
-        #Viewer.font = pygame.freetype.Font(os.path.join("data","fonts","INSERT_YOUR_FONTFILENAME.ttf"))
+        # Viewer.font = pygame.freetype.Font(os.path.join("data","fonts","INSERT_YOUR_FONTFILENAME.ttf"))
         # otherwise:
         fontname = pygame.freetype.get_default_font()
-        Viewer.font = pygame.freetype.SysFont(fontname,64)
+        Viewer.font = pygame.freetype.SysFont(fontname, 64)
 
         # ------ joysticks init ----
         pygame.joystick.init()
@@ -859,13 +869,11 @@ class Viewer:
         self.fps = 60
         self.playtime = 0.0
 
-        # ------ game variables -----
-        Viewer.gold = 0
-        Viewer.lives = 100
+
         # ------ background images ------
-        #self.backgroundfilenames = []  # every .jpg or .jpeg file in the folder 'data'
-        #self.make_background()
-        #self.load_images()
+        # self.backgroundfilenames = []  # every .jpg or .jpeg file in the folder 'data'
+        # self.make_background()
+        # self.load_images()
 
         self.prepare_sprites()
         self.setup()
@@ -873,17 +881,20 @@ class Viewer:
 
     def setup(self):
         """call this to restart a game"""
+        # ------ game variables -----
+        Viewer.gold = 10
+        Viewer.lives = 100
         self.background = pygame.Surface((Viewer.width, Viewer.height))
-        self.background.fill((255,255,255))
+        self.background.fill((255, 255, 255))
         # draw start and finish text in topleft / lowerright corners
-        pygame.draw.ellipse(self.background, (200,200,200), (0,0, 200, 100))
+        pygame.draw.ellipse(self.background, (200, 200, 200), (0, 0, 200, 100))
         surf, rect = Viewer.font.render(
             text="start area",
             fgcolor=(128, 128, 128),
             size=32,
         )
-        self.background.blit(surf, (25,40))
-        pygame.draw.ellipse(self.background, (200, 200, 200), (Viewer.width-200, Viewer.height-100, 200, 100))
+        self.background.blit(surf, (25, 40))
+        pygame.draw.ellipse(self.background, (200, 200, 200), (Viewer.width - 200, Viewer.height - 100, 200, 100))
         surf, rect = Viewer.font.render(
             text="finish area",
             fgcolor=(128, 128, 128),
@@ -891,60 +902,60 @@ class Viewer:
         )
         self.background.blit(surf, (Viewer.width - 180, Viewer.height - 70))
 
-
-
-
     def prepare_sprites(self):
         """painting on the surface and create sprites"""
         Viewer.allgroup = pygame.sprite.LayeredUpdates()  # for drawing with layers
         Viewer.shipgroup = pygame.sprite.Group()
         Viewer.beamgroup = pygame.sprite.Group()
-        Viewer.cannongroup = pygame.sprite.Group() # GroupSingle
+        Viewer.cannongroup = pygame.sprite.Group()  # GroupSingle
         # assign classes to groups
         VectorSprite.groups = self.allgroup
         Ship.groups = self.allgroup, self.shipgroup
         Cannon.groups = self.allgroup, self.cannongroup
         Beam.groups = self.allgroup, self.beamgroup
 
-
-        #Bubble.groups = self.allgroup, self.fxgroup  # special effects
-        #Flytext.groups = self.allgroup, self.flytextgroup, self.flygroup
-        #self.ship1 = Ship(pos=pygame.math.Vector2(400, 200), color=(0,0,200))
-        #self.ship2 = Ship2(pos=pygame.math.Vector2(100, 100), color=(200,0,0))
-        #self.ship3 = Ship3(pos=pygame.math.Vector2(100, 400), color=(0,200,0))
-        #self.cannon1 = Cannon(pos=pygame.math.Vector2(300,400), color=(50,100,100))
-        #self.cannon2 = Cannon(pos=pygame.math.Vector2(600,500), color=(50,100,100))
+        # Bubble.groups = self.allgroup, self.fxgroup  # special effects
+        # Flytext.groups = self.allgroup, self.flytextgroup, self.flygroup
+        # self.ship1 = Ship(pos=pygame.math.Vector2(400, 200), color=(0,0,200))
+        # self.ship2 = Ship2(pos=pygame.math.Vector2(100, 100), color=(200,0,0))
+        # self.ship3 = Ship3(pos=pygame.math.Vector2(100, 400), color=(0,200,0))
+        # self.cannon1 = Cannon(pos=pygame.math.Vector2(300,400), color=(50,100,100))
+        # self.cannon2 = Cannon(pos=pygame.math.Vector2(600,500), color=(50,100,100))
 
     def change_wind(self):
         # get length (radius) and angle from windvector
         r, a = Viewer.windvector.as_polar()
-        delta_r = random.choice((-3,-2,-2,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,2,2,3))
-        delta_a = random.choice((-3,-2,-2,-2,-1,-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,3))
+        delta_r = random.choice(
+            (-3, -2, -2, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 3))
+        delta_a = random.choice(
+            (-3, -2, -2, -2, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3))
         r = between(r + delta_r, 0, Viewer.maxwind)
         a = (a + delta_a) % 360
-        Viewer.windvector.from_polar((r,a))
+        Viewer.windvector.from_polar((r, a))
         # --- draw windrose ---
-        write(self.screen, "wind: {:.0f} pixel/sec,  {:.0f}° ".format(r,360-a), x=5, y=Viewer.height - 115, color=(128,128,128), font_size=12)
-        pygame.draw.circle(self.screen, (128,128,128), (50, Viewer.height-50), 50,1)
+        write(self.screen, "wind: {:.0f} pixel/sec,  {:.0f}° ".format(r, 360 - a), x=5, y=Viewer.height - 115,
+              color=(128, 128, 128), font_size=12)
+        pygame.draw.circle(self.screen, (128, 128, 128), (50, Viewer.height - 50), 50, 1)
         # ---- calculate wind triangle -----
-        p0 = pygame.math.Vector2(50, Viewer.height - 50) # center of circle
+        p0 = pygame.math.Vector2(50, Viewer.height - 50)  # center of circle
         p1 = pygame.math.Vector2()
-        p1.from_polar((50, a)) # - a so that ° goes counterclockwise
-        p1 = p0 + p1 # tip of triangle
+        p1.from_polar((50, a))  # - a so that ° goes counterclockwise
+        p1 = p0 + p1  # tip of triangle
         p2 = pygame.math.Vector2()
-        p2.from_polar((50, a+120))
+        p2.from_polar((50, a + 120))
         p3 = pygame.math.Vector2()
-        p3.from_polar((50, a-120))
+        p3.from_polar((50, a - 120))
         p2 = p0 + p2
         p3 = p0 + p3
-        pygame.draw.polygon(self.screen, (128,128,128), [(int(round(p.x,0)), int(round(p.y,0))) for p in (p0, p2, p1, p3) ], 5)
-        windpercent = r / Viewer.maxwind * 100
-        p4 = p0 - p1
-        pygame.draw.circle(self.screen, (200,0,0), (int(p1.x), int(p1.y)), 5)
-        p5 = pygame.math.Vector2()
-        p5.from_polar((windpercent, a))
-        p5 = p4 + p5
-        pygame.draw.line(self.screen, (64,64,64), (int(round(p4.x,0)), int(round(p4.y,0))), (int(round(p5.x,0)), int(round(p5.y,0))), 10)
+        c = int(round(r / Viewer.maxwind * 255, 0))
+        pygame.draw.polygon(self.screen, (c, c, c),
+                            [(int(round(p.x, 0)), int(round(p.y, 0))) for p in (p0, p2, p1, p3)], 5)
+        # p4 = p0 - p1
+        # pygame.draw.circle(self.screen, (200,0,0), (int(p1.x), int(p1.y)), 5)
+        # p5 = pygame.math.Vector2()
+        # p5.from_polar((windpercent, a))
+        # p5 = p4 + p5
+        # pygame.draw.line(self.screen, (64,64,64), (int(round(p4.x,0)), int(round(p4.y,0))), (int(round(p5.x,0)), int(round(p5.y,0))), 10)
 
     def draw_path(self, background):
         # ---- draw circles and polygon for path ---
@@ -968,35 +979,35 @@ class Viewer:
         # pygame.mouse.set_visible(False)
         click_oldleft, click_oldmiddle, click_oldright = False, False, False
 
-        #for b in range(-50,50, 5):
+        # for b in range(-50,50, 5):
         #    Bubble(pos=pygame.math.Vector2(200, 200), age=b/100, max_age=3)
-        Flytext(pos=pygame.math.Vector2(Viewer.width//2, Viewer.height //2),
-                move=pygame.math.Vector2(0,-5),
+        Flytext(pos=pygame.math.Vector2(Viewer.width // 2, Viewer.height // 2),
+                move=pygame.math.Vector2(0, -5),
                 text="Tower Defense",
                 max_age=5,
                 fontsize=100,
-                alpha_start = 255,
-                alpha_end = 15,
+                alpha_start=255,
+                alpha_end=15,
                 acceleration_factor=1.015)
-        Flytext(pos=pygame.math.Vector2(Viewer.width//2, Viewer.height),
-                move=pygame.math.Vector2(0,-15),
+        Flytext(pos=pygame.math.Vector2(Viewer.width // 2, Viewer.height),
+                move=pygame.math.Vector2(0, -15),
                 text="left-click / right-click with mouse to edit flightpath",
-                color=(5,5,5),
+                color=(5, 5, 5),
                 max_age=10,
                 fontsize=25,
                 )
-        Flytext(pos=pygame.math.Vector2(Viewer.width//2, Viewer.height + 50),
-                move=pygame.math.Vector2(0,-15),
+        Flytext(pos=pygame.math.Vector2(Viewer.width // 2, Viewer.height + 50),
+                move=pygame.math.Vector2(0, -15),
                 text="press space when done",
-                color=(200,0,200),
+                color=(200, 0, 200),
                 max_age=15,
-                age = -3,
+                age=-3,
                 fontsize=35,
                 acceleration_factor=1.015,
                 )
         self.modus = "path"
 
-        #points = []
+        # points = []
         # --------------------------- main loop --------------------------
         monsters_started = 0
         monsters_in_wave = 100
@@ -1017,33 +1028,30 @@ class Viewer:
                     if event.key == pygame.K_SPACE:
                         if self.modus == "cannon":
                             self.modus = "play"
-                            #for c in self.cannongroup:
-                                # make cannon_shootingrange permanent visible
-                                #pygame.draw.circle(self.background, (200,200,200), (int(c.pos.x),int(c.pos.y)), c.shooting_radius_max, 1  )
-                                #pygame.draw.circle(self.background, (200, 200, 200), (int(c.pos.x), int(c.pos.y)), c.shooting_radius_min, 1)
+                            # for c in self.cannongroup:
+                            # make cannon_shootingrange permanent visible
+                            # pygame.draw.circle(self.background, (200,200,200), (int(c.pos.x),int(c.pos.y)), c.shooting_radius_max, 1  )
+                            # pygame.draw.circle(self.background, (200, 200, 200), (int(c.pos.x), int(c.pos.y)), c.shooting_radius_min, 1)
 
                         if self.modus == "path":
                             self.modus = "cannon"
                             # make ship path permanent visible
                             self.draw_path(self.background)
                             print("points: ", Viewer.points)
-                            Flytext(pos=pygame.math.Vector2(Viewer.width//2, 500),
+                            Flytext(pos=pygame.math.Vector2(Viewer.width // 2, 500),
                                     text="place cannons with mouse, press space when done",
                                     max_age=5,
-                                    fontsize=23,)
-
+                                    fontsize=23, )
 
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
-
 
             # ---------- clear all --------------
             # pygame.display.set_caption(f"player 1: {self.player1.deaths}   vs. player 2: {self.player2.deaths}")     #str(nesw))
             self.screen.blit(self.background, (0, 0))
 
             if self.modus == "path":
-                self.draw_path(background = self.screen)
-
+                self.draw_path(background=self.screen)
 
             # ------ mouse handler ------
             mousevector = pygame.math.Vector2(pygame.mouse.get_pos())
@@ -1052,19 +1060,19 @@ class Viewer:
                 # delete prev last point by right-klick
                 if click_oldright and not click_right:
                     if len(Viewer.points) > 2:
-                        #pygame.mouse.get_pressed()
-                        #Viewer.points = Viewer.points[:-1]
+                        # pygame.mouse.get_pressed()
+                        # Viewer.points = Viewer.points[:-1]
                         del Viewer.points[-2]
                         for ship in self.shipgroup:
-                            ship.index_of_waypoint = between(ship.index_of_waypoint, 0, len(Viewer.points)-1)
+                            ship.index_of_waypoint = between(ship.index_of_waypoint, 0, len(Viewer.points) - 1)
                 # add points by left-click
                 if click_oldleft and not click_left:
                     Viewer.points.insert(-1, pygame.mouse.get_pos())
             elif self.modus == "cannon":
                 # ----- cannon-range circle around mousepointer when in cannon modus:
-                pygame.draw.circle(self.screen, (200,200,200), pygame.mouse.get_pos(), Cannon.shooting_radius_max, 1 )
+                pygame.draw.circle(self.screen, (200, 200, 200), pygame.mouse.get_pos(), Cannon.shooting_radius_max, 1)
                 pygame.draw.circle(self.screen, (200, 200, 200), pygame.mouse.get_pos(), Cannon.shooting_radius_min, 1)
-                pygame.draw.circle(self.screen, (0, 200, 00), pygame.mouse.get_pos(), Cannon.exclusive_radius )
+                pygame.draw.circle(self.screen, (0, 200, 00), pygame.mouse.get_pos(), Cannon.exclusive_radius)
                 # --- too close to other cannon ?
                 min_distance, othercannon = Viewer.width * 2, None
                 for c in self.cannongroup:
@@ -1075,24 +1083,26 @@ class Viewer:
                 if othercannon is not None:
                     if min_distance < Cannon.exclusive_radius + othercannon.exclusive_radius:
                         # red x at cursor
-                        pygame.draw.line(self.screen, (200, 0, 0), (int(mousevector.x) - 20, int(mousevector.y) - 20), (int(mousevector.x) + 20, int(mousevector.y) + 20), 5)
-                        pygame.draw.line(self.screen, (200, 0, 0), (int(mousevector.x) + 20, int(mousevector.y) - 20),(int(mousevector.x) - 20, int(mousevector.y) + 20), 5)
+                        pygame.draw.line(self.screen, (200, 0, 0), (int(mousevector.x) - 20, int(mousevector.y) - 20),
+                                         (int(mousevector.x) + 20, int(mousevector.y) + 20), 5)
+                        pygame.draw.line(self.screen, (200, 0, 0), (int(mousevector.x) + 20, int(mousevector.y) - 20),
+                                         (int(mousevector.x) - 20, int(mousevector.y) + 20), 5)
                         ok = False
-                if ok and click_oldleft and not click_left:
+                if ok and click_oldleft and not click_left and Viewer.gold > 0:
                     # place new cannon
                     Cannon(pos=mousevector)
-
+                    Viewer.gold -= 1
 
             click_oldleft, click_oldmiddle, click_oldright = click_left, click_middle, click_right
 
             # paint cannon exclusivranges
             if self.modus == "cannon":
                 for c in self.cannongroup:
-                    pygame.draw.circle(self.screen, (200,200,200), (int(c.pos.x),int(c.pos.y)), c.shooting_radius_max, 1  )
+                    pygame.draw.circle(self.screen, (200, 200, 200), (int(c.pos.x), int(c.pos.y)),
+                                       c.shooting_radius_max, 1)
                     pygame.draw.circle(self.screen, (200, 200, 200), (int(c.pos.x), int(c.pos.y)),
                                        c.shooting_radius_min, 1)
-                    pygame.draw.circle(self.screen, (200, 00, 00), (int(c.pos.x), int(c.pos.y)), c.exclusive_radius )
-
+                    pygame.draw.circle(self.screen, (200, 00, 00), (int(c.pos.x), int(c.pos.y)), c.exclusive_radius)
 
             # ------ spawn ships / monsters -----
             if self.modus == "play":
@@ -1100,21 +1110,21 @@ class Viewer:
                     time_for_next_monster = self.playtime + 0.5
                     MyShip = random.choice((Ship, Ship2, Ship3))
                     # initialize class instance
-                    MyShip(pos = pygame.math.Vector2(-50,-50))
-                    #monster.pos = pygame.math.Vector2(random.randint(-100,-100), 0)
+                    MyShip(pos=pygame.math.Vector2(-50, -50))
+                    # monster.pos = pygame.math.Vector2(random.randint(-100,-100), 0)
                     monsters_started += 1
             # ----- delete ships that reached the finish area / subtract lives
-            #killnumbers = []
+            # killnumbers = []
             for ship in self.shipgroup:
                 distance = ship.pos - Viewer.points[-1]
                 if distance.length() < ship.width:
                     ship.kill()
                     self.lives -= 1
 
-
             # ----------- writing on screen ----------
 
             # -------- write points ------------
+
             if self.modus == "path":
                 for y, point in enumerate(Viewer.points):
                     rect1 = Viewer.font.render_to(
@@ -1124,8 +1134,14 @@ class Viewer:
                         fgcolor=(64, 64, 64),
                         size=12,
                     )
+            if self.modus == "cannon":
+                write(self.screen, f"gold left: {Viewer.gold}", x=Viewer.width//2, y=5, origin="topcenter")
+
+            # write status
             if self.modus == "play":
-                write(self.screen, f"wave {wave}: {monsters_started} of {monsters_in_wave} gold: {self.gold} lives: {self.lives}", x=Viewer.width//2, y = 15, origin="topcenter" )
+                write(self.screen,
+                      f"wave {wave}: {monsters_started} of {monsters_in_wave} gold: {self.gold} lives: {self.lives}",
+                      x=Viewer.width // 2, y=5, origin="topcenter")
                 # ------- draw wind information -----
                 self.change_wind()
             # -------- fps -----------
@@ -1138,56 +1154,47 @@ class Viewer:
             # ----------- collision detection ------------
             # ----- Beam vs. Ship ------
             for ship in self.shipgroup:
-                crashgroup = pygame.sprite.spritecollide(ship, self.beamgroup, True,  pygame.sprite.collide_mask)
-                #crashgroup_m = pygame.sprite.spritecollide(ship, crashgroup_r, True,  pygame.sprite.collide_mask)
+                crashgroup = pygame.sprite.spritecollide(ship, self.beamgroup, True, pygame.sprite.collide_mask)
+                # crashgroup_m = pygame.sprite.spritecollide(ship, crashgroup_r, True,  pygame.sprite.collide_mask)
                 for beam in crashgroup:
-                    ship.pos += beam.move * seconds * 0.5 # impact
+                    #ship.pos += beam.move * seconds * 0.5  # impact
                     ship.hitpoints -= beam.damage
                     # ---- start Fire at impact point -----
-                    Fire(boss= ship, bossvector = beam.pos - ship.pos, bossangle = ship.get_angle())
-                    #---sparks---
-                    for _ in range(15):
-                        m = pygame.math.Vector2(1,0)
-                        m.from_polar((random.random()*0.2+5.9, random.randint(0,360)))
+                    Fire(boss=ship, bossvector=beam.pos - ship.pos, bossangle=ship.get_angle())
+                    # ---sparks---
+                    for _ in range(5):
+                        m = pygame.math.Vector2(1, 0)
+                        m.from_polar((random.random() * 0.2 + 5.9, random.randint(0, 360)))
                         a = m.as_polar()[1]
                         Spark2(pos=pygame.math.Vector2(beam.pos.x, beam.pos.y),
-                              move=m,
-                              angle = a,
-                              color = ship.color,
-                              max_age = 0.2 + random.random()*1.1)
-                #beam.kill()
-
-
+                               move=m,
+                               angle=a,
+                               color=ship.color,
+                               max_age=0.2 + random.random() * 1.1)
+                # beam.kill()
 
             # --- each cannon find closest ship and rotates towards it ----
             for cannon in self.cannongroup:
                 distance, victim = 2 * Viewer.width, None
                 for ship in self.shipgroup:
                     d = (cannon.pos - ship.pos).length()
-                    #d = d.length
+                    # d = d.length
                     if d > cannon.shooting_radius_max or d < cannon.shooting_radius_min:
-                        continue #
+                        continue  #
                     if d < distance:
                         distance, victim = d, ship
                 if victim is not None:
                     cannon.rotate_toward(victim.pos, seconds)
-                    pygame.gfxdraw.line(self.screen, int(cannon.pos.x), int(cannon.pos.y), int(victim.pos.x), int(victim.pos.y), (200,0,200))
-
-
-
-
+                    pygame.gfxdraw.line(self.screen, int(cannon.pos.x), int(cannon.pos.y), int(victim.pos.x),
+                                        int(victim.pos.y), (200, 0, 200))
 
             # write angle of ship, angle to mouse
-            #diff = pygame.math.Vector2(pygame.mouse.get_pos()-self.ship1.pos)
-            #m = diff.as_polar()[1]
+            # diff = pygame.math.Vector2(pygame.mouse.get_pos()-self.ship1.pos)
+            # m = diff.as_polar()[1]
             pygame.display.set_caption(f"{self.modus}")
-
-
-
 
             # --------- update all sprites ----------------
             self.allgroup.update(seconds)
-
 
             # ---------- blit all sprites --------------
             self.allgroup.draw(self.screen)
@@ -1215,6 +1222,7 @@ def between(value, lower_limit=0, upper_limit=255):
 def cmp(a, b):
     """compares a with b, returns 1 if a > b, returns 0 if a==b and returns -1 if a < b"""
     return (a > b) - (a < b)
+
 
 def randomize_colors(color, by=30):
     """randomize each color of a r,g,b tuple by the amount of +- by
@@ -1250,19 +1258,17 @@ def write(background, text, x=50, y=150, color=(0, 0, 0),
     elif origin == "topcenter":
         background.blit(surface, (x - width // 2, y))
     elif origin == "topright":
-        background.blit(surface, (x - width , y))
+        background.blit(surface, (x - width, y))
     elif origin == "centerleft":
         background.blit(surface, (x, y - height // 2))
     elif origin == "centerright":
-        background.blit(surface, (x - width , y - height // 2))
+        background.blit(surface, (x - width, y - height // 2))
     elif origin == "bottomleft":
-        background.blit(surface, (x , y - height ))
+        background.blit(surface, (x, y - height))
     elif origin == "bottomcenter":
-        background.blit(surface, (x - width // 2, y ))
+        background.blit(surface, (x - width // 2, y))
     elif origin == "bottomright":
         background.blit(surface, (x - width, y - height))
-
-
 
 
 if __name__ == "__main__":
