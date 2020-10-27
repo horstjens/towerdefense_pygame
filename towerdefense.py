@@ -26,8 +26,43 @@ class VectorSprite(pygame.sprite.Sprite):
 
     # numbers = {} # { number, Sprite }
 
-    def __init__(self, **kwargs):
-        self._default_parameters(**kwargs)
+    def __init__(self,
+                 pos=None,
+                 move=None,
+                 layer=0,
+                 angle=0,
+                 radius=0,
+                 color=(
+                               random.randint(0, 255),
+                               random.randint(0, 255),
+                               random.randint(0, 255),
+                       ),
+                 hitpoints=100,
+                 hitpointsfull=100,
+                 stop_on_edge = False,
+                 kill_on_edge = False,
+                 bounce_on_edge = False,
+                 warp_on_edge = False,
+                 age = 0,
+                 max_age = None,
+                 max_distance = None,
+                 picture = None,
+                 boss = None,
+                 #kill_with_boss = False,
+                 move_with_boss = False,
+                 area = None, # pygame.Rect
+                 **kwargs):
+        #self._default_parameters(**kwargs)
+        _locals = locals().copy() # copy locals() so that it does not updates itself
+        for key in _locals:
+            if key != "self" and key != "kwargs":  # iterate over all named arguments, including default values
+                setattr(self, key, _locals[key])
+        for key, arg in kwargs.items(): # iterate over all **kwargs arguments
+            setattr(self, key, arg)
+        if pos is None:
+            self.pos = pygame.math.Vector2(200,200)
+        if move is None:
+            self.move = pygame.math.Vector2(0,0)
         self._overwrite_parameters()
         pygame.sprite.Sprite.__init__(
             self, self.groups
@@ -102,6 +137,7 @@ class VectorSprite(pygame.sprite.Sprite):
             self.kill_with_boss = False
         if "move_with_boss" not in kwargs:
             self.move_with_boss = False
+
 
     def kill(self):
         # check if this is a boss and kill all his underlings as well
@@ -180,51 +216,53 @@ class VectorSprite(pygame.sprite.Sprite):
 
     def wallcheck(self):
         # ---- bounce / kill on screen edge ----
+        if self.area is None:
+            self.area = Viewer.screenrect
+            #print(self.area)
         # ------- left edge ----
-        if self.pos.x < 0:
+        if self.pos.x < self.area.left:
             if self.stop_on_edge:
-                self.pos.x = 0
+                self.pos.x = self.area.left
             if self.kill_on_edge:
                 self.kill()
             if self.bounce_on_edge:
-                self.pos.x = 0
+                self.pos.x = self.area.left
                 self.move.x *= -1
             if self.warp_on_edge:
-                self.pos.x = Viewer.width
+                self.pos.x = self.area.right
         # -------- upper edge -----
-        if self.pos.y < 0:
+        if self.pos.y < self.area.top:
             if self.stop_on_edge:
-                self.pos.y = 0
+                self.pos.y = self.area.top
             if self.kill_on_edge:
                 self.kill()
             if self.bounce_on_edge:
-                self.pos.y = 0
+                self.pos.y = self.area.top
                 self.move.y *= -1
             if self.warp_on_edge:
-                self.pos.y = 0
+                self.pos.y = self.area.bottom
         # -------- right edge -----
-        if self.pos.x > Viewer.width:
+        if self.pos.x > self.area.right:
             if self.stop_on_edge:
-                self.pos.x = Viewer.width
+                self.pos.x = self.area.right
             if self.kill_on_edge:
                 self.kill()
             if self.bounce_on_edge:
-                self.pos.x = Viewer.width
+                self.pos.x = self.area.right
                 self.move.x *= -1
             if self.warp_on_edge:
-                self.pos.x = 0
+                self.pos.x = self.area.left
         # --------- lower edge ------------
-        if self.pos.y > Viewer.height:
+        if self.pos.y > self.area.bottom:
             if self.stop_on_edge:
-                self.pos.y = Viewer.height
+                self.pos.y = self.area.bottom
             if self.kill_on_edge:
-                self.hitpoints = 0
                 self.kill()
             if self.bounce_on_edge:
-                self.pos.y = Viewer.height
+                self.pos.y = self.area.bottom
                 self.move.y *= -1
             if self.warp_on_edge:
-                self.pos.y = 0
+                self.pos.y = self.area.top
 
 
 class Flytext(VectorSprite):
@@ -648,6 +686,7 @@ class Cannon(VectorSprite):
 
     def _overwrite_parameters(self):
         self.ready_to_fire_time = 0
+        self.busy_with_upgrading = False
 
     def rotate_toward(self, target_pos_vector, seconds):
         m = target_pos_vector - self.pos
@@ -662,6 +701,8 @@ class Cannon(VectorSprite):
             self.fire()
 
     def fire(self):
+        if self.busy_with_upgrading:
+            return
         if self.ready_to_fire_time > self.age:
             return  # still reloading
         self.ready_to_fire_time = self.age + self.reload_time
@@ -694,6 +735,10 @@ class Cannon(VectorSprite):
         self.rect = self.image.get_rect()
         self.rect.center = int(self.pos[0]), int(self.pos[1])
         self.image0 = self.image.copy()
+
+    #def update(self, seconds):
+    #    super().update(seconds)
+        #print(self.number,  self.starttime)
 
 
 class Beam(VectorSprite):
@@ -827,6 +872,7 @@ class Viewer:
     gold = 0
     lives = 0
     maxwind = 400
+    spawn_rect_width = 40 # width of rects around topleft screencorner where new ships can spawn
 
     # playergroup = None # pygame sprite Group only for players
 
@@ -839,9 +885,18 @@ class Viewer:
         Viewer.width = width
         Viewer.height = height
         Viewer.screenrect = pygame.Rect(0, 0, width, height)
-        Viewer.points = [(0, 0), (width + 100, height + 100)]
+        Viewer.points = [(100, 100), (width - 50, height - 50)]
         Viewer.windvector = pygame.math.Vector2()
         Viewer.windvector.from_polar((random.randint(50, 250), random.randint(0, 360)))
+        # first spwanrect is nort-east of topleft screencorner
+        self.spawnrects = [pygame.Rect(-self.spawn_rect_width, - self.spawn_rect_width, self.spawn_rect_width, self.spawn_rect_width)]
+        # create 4 additional spawnrects north of topleft screen corner
+        for x in range(0, self.spawn_rect_width * 4 + 1, self.spawn_rect_width ):
+            self.spawnrects.append(pygame.Rect(x, -self.spawn_rect_width, self.spawn_rect_width, self.spawn_rect_width))
+        # create 4 additional spawnrects west of topleft screen corner
+        for y in range(0, self.spawn_rect_width * 4 + 1, self.spawn_rect_width ):
+            self.spawnrects.append(pygame.Rect(-self.spawn_rect_width, y, self.spawn_rect_width, self.spawn_rect_width))
+
 
         # ---- pygame init
         pygame.init()
@@ -1090,7 +1145,8 @@ class Viewer:
                         ok = False
                 if ok and click_oldleft and not click_left and Viewer.gold > 0:
                     # place new cannon
-                    Cannon(pos=mousevector)
+                    #Cannon(pos=pygame.math.Vector2(x=pygame.mouse.get_pos()[0],y=pygame.mouse.get_pos()[1] ))
+                    Cannon(mousevector, starttime=self.playtime)
                     Viewer.gold -= 1
 
             click_oldleft, click_oldmiddle, click_oldright = click_left, click_middle, click_right
@@ -1107,10 +1163,25 @@ class Viewer:
             # ------ spawn ships / monsters -----
             if self.modus == "play":
                 if monsters_started < monsters_in_wave and random.random() < 0.01 and time_for_next_monster < self.playtime:
-                    time_for_next_monster = self.playtime + 0.5
+                    time_for_next_monster = self.playtime + 0.15
                     MyShip = random.choice((Ship, Ship2, Ship3))
+
                     # initialize class instance
-                    MyShip(pos=pygame.math.Vector2(-50, -50))
+                    # check the free spawnrects (north/east of topleft screen corner)
+                    free = {}
+                    for i, rect in enumerate(self.spawnrects):
+                        free[i] = True
+                        for ship in self.shipgroup:
+                            if rect.collidepoint(ship.pos.x, ship.pos.y):
+                                free[i] = False
+                                continue
+                    # any spawnrect free at all?
+                    if True in free.values():
+                        # choose one index of a free spwanrect
+                        i = random.choice([j for j in free.keys() if free[j]])
+                        spawnrect = self.spawnrects[i]
+
+                    MyShip(pos=pygame.math.Vector2(spawnrect.center))
                     # monster.pos = pygame.math.Vector2(random.randint(-100,-100), 0)
                     monsters_started += 1
             # ----- delete ships that reached the finish area / subtract lives
