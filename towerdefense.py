@@ -29,7 +29,7 @@ class VectorSprite(pygame.sprite.Sprite):
     def __init__(self,
                  pos=None,
                  move=None,
-                 layer=0,
+                 _layer=0,
                  angle=0,
                  radius=0,
                  color=(
@@ -52,11 +52,12 @@ class VectorSprite(pygame.sprite.Sprite):
                  move_with_boss = False,
                  area = None, # pygame.Rect
                  **kwargs):
-        #self._default_parameters(**kwargs)
-        _locals = locals().copy() # copy locals() so that it does not updates itself
-        for key in _locals:
+        ### initialize pygame sprite DO NOT DELETE THIS LINE
+        pygame.sprite.Sprite.__init__(self, self.groups)
+        mylocals = locals().copy() # copy locals() so that it does not updates itself
+        for key in mylocals:
             if key != "self" and key != "kwargs":  # iterate over all named arguments, including default values
-                setattr(self, key, _locals[key])
+                setattr(self, key, mylocals[key])
         for key, arg in kwargs.items(): # iterate over all **kwargs arguments
             setattr(self, key, arg)
         if pos is None:
@@ -64,9 +65,7 @@ class VectorSprite(pygame.sprite.Sprite):
         if move is None:
             self.move = pygame.math.Vector2(0,0)
         self._overwrite_parameters()
-        pygame.sprite.Sprite.__init__(
-            self, self.groups
-        )  # call parent class. NEVER FORGET !
+
         self.number = VectorSprite.number  # unique number for each sprite
         VectorSprite.number += 1
         # VectorSprite.numbers[self.number] = self
@@ -288,6 +287,7 @@ class Flytext(VectorSprite):
             rotate_start=0,
             rotate_end=0,
             picture=None,
+            _layer = 7
     ):
         """Create a flying VectorSprite with text or picture that disappears after a while
 
@@ -360,7 +360,7 @@ class Flytext(VectorSprite):
             age=age,
             picture=picture,
         )
-        self._layer = 7  # order of sprite layers (before / behind other sprites)
+        #self._layer = 7  # order of sprite layers (before / behind other sprites)
         # acceleration_factor  # if < 1, Text moves slower. if > 1, text moves faster.
 
     def create_image(self):
