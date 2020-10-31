@@ -263,6 +263,43 @@ class VectorSprite(pygame.sprite.Sprite):
             if self.warp_on_edge:
                 self.pos.y = self.area.top
 
+class UpgradeCursor(VectorSprite):
+
+    def update(self, seconds):
+        self.pos = pygame.math.Vector2(pygame.mouse.get_pos())
+        if Viewer.gold >= 10:
+            self.image = self.image0
+        else:
+            self.image = self.image1
+        super().update(seconds)
+
+    def create_image(self):
+        self.width = 20
+        self.height = self.width
+        self.image = pygame.Surface((self.width, self.width))
+        # pygame.gfxdraw.polygon(self.image, ((0,0), (50, 25), (0,50)), pygame.Color("red"))
+        pygame.draw.polygon(self.image, self.color,
+                            ((self.width//2, 0),
+                             (self.width, self.height //3),
+                             (self.width * 0.6, self.height // 3),
+                             (self.width * 0.6, self.height),
+                             (self.width //2, self.height * 0.9),
+                             (self.width * 0.4, self.height),
+                             (self.width * 0.4, self.height //3),
+                             (0, self.height //3),
+                             ), 5)
+        self.image.set_colorkey((0, 0, 0))
+        self.image.convert_alpha()
+        self.image0 = self.image.copy()
+        self.image1 = pygame.Surface((self.width, self.width))
+        pygame.draw.line(self.image1, (222,0,0), (0,0), (self.width, self.height),5)
+        pygame.draw.line(self.image1, (222, 0, 0), (self.width,0), (0, self.height), 5)
+        self.image1.set_colorkey((0, 0, 0))
+        self.image1.convert_alpha()
+
+        self.rect = self.image.get_rect()
+        self.rect.center = (int(round(self.pos.x, 0)), int(round(self.pos.y, 0)))
+
 
 class Flytext(VectorSprite):
     def __init__(
@@ -678,15 +715,23 @@ class Ship3(Ship):
 
 class Cannon(VectorSprite):
     width = 50
-    rot_speed = 60
-    reload_time = 0.25  # seconds
     shooting_radius_max = 250
     shooting_radius_min = 25
     exclusive_radius = 90  # cannons can not be placed closer to each other
 
+    def upgrade(self):
+        self.shooting_radius_max *= 1.2
+        self.reload_time *= 0.5
+        self.rot_speed *= 1.5
+
     def _overwrite_parameters(self):
         self.ready_to_fire_time = 0
         self.busy_with_upgrading = False
+        self.rot_speed = 30
+        self.reload_time = 1.5  # seconds
+        self.shooting_radius_max = 150
+        self.shooting_radius_min = 25
+        #self.exclusive_radius = 90  # cannons can not be placed closer to each other
 
     def rotate_toward(self, target_pos_vector, seconds):
         m = target_pos_vector - self.pos
@@ -869,7 +914,7 @@ class Viewer:
     font = None
     points = []
     windvector = None
-    gold = 0
+    gold = 50
     lives = 0
     maxwind = 400
     spawn_rect_width = 40 # width of rects around topleft screencorner where new ships can spawn
@@ -937,7 +982,7 @@ class Viewer:
     def setup(self):
         """call this to restart a game"""
         # ------ game variables -----
-        Viewer.gold = 10
+        Viewer.gold = 50
         Viewer.lives = 100
         self.background = pygame.Surface((Viewer.width, Viewer.height))
         self.background.fill((255, 255, 255))
@@ -1083,6 +1128,8 @@ class Viewer:
                     if event.key == pygame.K_SPACE:
                         if self.modus == "cannon":
                             self.modus = "play"
+                            self.u = UpgradeCursor()
+
                             # for c in self.cannongroup:
                             # make cannon_shootingrange permanent visible
                             # pygame.draw.circle(self.background, (200,200,200), (int(c.pos.x),int(c.pos.y)), c.shooting_radius_max, 1  )
@@ -1148,6 +1195,18 @@ class Viewer:
                     #Cannon(pos=pygame.math.Vector2(x=pygame.mouse.get_pos()[0],y=pygame.mouse.get_pos()[1] ))
                     Cannon(mousevector, starttime=self.playtime)
                     Viewer.gold -= 1
+
+            elif self.modus == "play":
+                if click_oldleft and not click_left and self.gold >= 10:
+                    for c in self.cannongroup:
+                        distancevector = c.pos - mousevector
+                        distance = distancevector.length()
+                        if distance < 25:
+                            Viewer.gold -= 10
+                            c.upgrade()
+                            break
+
+
 
             click_oldleft, click_oldmiddle, click_oldright = click_left, click_middle, click_right
 
