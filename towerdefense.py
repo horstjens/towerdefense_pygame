@@ -550,7 +550,7 @@ class Ship(VectorSprite):
     width = 40
     height = 40
     rot_speed = 15
-    bounty = 1
+    bounty = 3
 
     def _overwrite_parameters(self):
         self.index_of_waypoint = 0
@@ -564,7 +564,7 @@ class Ship(VectorSprite):
                 m = pygame.math.Vector2()
                 m.from_polar((random.random() * 15 + 5.9, random.randint(0, 360)))
                 a = m.as_polar()[1]
-                Spark2(pos=pygame.math.Vector2(self.pos.x, self.pos.y),
+                Spark(pos=pygame.math.Vector2(self.pos.x, self.pos.y),
                        move=m,
                        angle=a,
                        color=self.color,
@@ -713,6 +713,9 @@ class Ship3(Ship):
         VectorSprite.update(self, seconds)
 
 
+
+
+
 class Cannon(VectorSprite):
     width = 50
     shooting_radius_max = 250
@@ -727,8 +730,8 @@ class Cannon(VectorSprite):
     def _overwrite_parameters(self):
         self.ready_to_fire_time = 0
         self.busy_with_upgrading = False
-        self.rot_speed = 30
-        self.reload_time = 1.5  # seconds
+        self.rot_speed = 90
+        self.reload_time = 0.7  # seconds
         self.shooting_radius_max = 150
         self.shooting_radius_min = 25
         #self.exclusive_radius = 90  # cannons can not be placed closer to each other
@@ -786,6 +789,67 @@ class Cannon(VectorSprite):
         #print(self.number,  self.starttime)
 
 
+class Rocketlauncher(Cannon):
+    width = 50
+    shooting_radius_max = 450
+    shooting_radius_min = 125
+    exclusive_radius = 190
+    delay_between_rockets = 0.22 # seconds interval between rockets of one salv
+
+    def _overwrite_parameters(self):
+        self.ready_to_fire_time = 0
+        self.busy_with_upgrading = False
+        self.rot_speed = 30
+        self.reload_time = 3.7  # seconds
+        self.shooting_radius_max = 450
+        self.shooting_radius_min = 125
+        # self.exclusive_radius = 90  # cannons can not be placed closer to each other
+
+
+    def fire(self):
+        if self.busy_with_upgrading:
+            return
+        if self.ready_to_fire_time > self.age:
+            return  # still reloading
+        self.ready_to_fire_time = self.age + self.reload_time
+        # p = pygame.math.Vector2(self.pos.x, self.pos.y)
+        angle = self.get_angle()
+
+        for y in range(4):
+            m = pygame.math.Vector2(Rocket.speed, 0)
+            m.from_polar((Rocket.speed, angle))
+            # barrel = pygame.math.Vector2(1, 0)
+            # barrel.from_polar((self.width // 2, angle))
+            offset = pygame.math.Vector2(self.width//2-20, y * self.width // 4 - 8)
+            offset.rotate_ip(angle)
+            Rocket(pos=pygame.math.Vector2(self.pos.x, self.pos.y) + offset,
+                   move=m,
+                   angle=angle,
+                   age = -y * self.delay_between_rockets,
+                   max_distance=self.shooting_radius_max - self.width // 2,
+                   color=(150, 150, 0))
+
+    def create_image(self):
+        self.image = pygame.Surface((self.width, self.width))
+        pygame.draw.circle(
+            self.image, self.color,
+            (self.width // 2, self.width // 2),
+            self.width // 3,
+            5
+        )
+        for y in range(4):
+            pygame.draw.rect(self.image, (0, y * 63, 70),
+                             (10, y * self.width // 4,
+                              self.width - 20, self.width // 5))
+
+        self.image.set_colorkey((0, 0, 0))
+        # self.image.set_alpha(self.alpha_start - self.age * self.alpha_diff_per_second)
+        self.image.convert_alpha()
+        self.rect = self.image.get_rect()
+        self.rect.center = int(self.pos[0]), int(self.pos[1])
+        self.image0 = self.image.copy()
+
+
 class Beam(VectorSprite):
     """a glowing laser beam"""
     width = 25  # must be >= 10
@@ -814,13 +878,29 @@ class Beam(VectorSprite):
         self.rect.center = int(self.pos.x), int(self.pos.y)
         self.set_angle(self.angle)
 
+
+
+class Rocket(Beam):
+    """like a Beam, but tumbles in flight """
+    width = 10  # must be >= 10
+    height = 5
+    speed = 44
+    damage = 50
+    color = (100,45,56)
+
+
     def update(self, seconds):
         # self.create_image()
-
         super().update(seconds)
+        if random.random() < 0.7:
+            Smoke(pos=pygame.math.Vector2(self.pos.x, self.pos.y))
+        # tumble
+        #if random.random() < 0.1:
+        delta_angle = random.choice((-3,-2,-1,0,0,0,0,0,0,1,2,3))
+        self.move.rotate_ip(delta_angle)
+        self.rotate(delta_angle)
 
-
-class Spark2(VectorSprite):
+class Spark(VectorSprite):
 
     def _overwrite_parameters(self):
         self._layer = 9
@@ -836,27 +916,6 @@ class Spark2(VectorSprite):
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
         self.image0 = self.image.copy()
-
-
-class Spark(VectorSprite):
-    width = 10
-    height = 1
-    acc = 1.01
-
-    def create_image(self):
-        self.image = pygame.Surface((10, 3))
-        pygame.draw.line(self.image, self.color, (0, 1), (10, 1))
-        self.image.set_colorkey((0, 0, 0))
-        # self.image.fill(randomize_colors(self.color, 20))
-        self.image.convert_alpha()
-        self.rect = self.image.get_rect()
-        self.rect.center = self.pos.x, self.pos.y
-        self.image0 = self.image.copy()
-        self.set_angle(self.angle)
-
-    def update(self, seconds):
-        self.move *= self.acc
-        super().update(seconds)
 
 
 class Smoke(VectorSprite):
@@ -1008,10 +1067,12 @@ class Viewer:
         Viewer.shipgroup = pygame.sprite.Group()
         Viewer.beamgroup = pygame.sprite.Group()
         Viewer.cannongroup = pygame.sprite.Group()  # GroupSingle
+        Viewer.rocketlaunchergroup = pygame.sprite.Group()
         # assign classes to groups
         VectorSprite.groups = self.allgroup
         Ship.groups = self.allgroup, self.shipgroup
         Cannon.groups = self.allgroup, self.cannongroup
+        Rocketlauncher.groups = self.allgroup, self.cannongroup, self.rocketlaunchergroup
         Beam.groups = self.allgroup, self.beamgroup
 
         # Bubble.groups = self.allgroup, self.fxgroup  # special effects
@@ -1193,8 +1254,12 @@ class Viewer:
                 if ok and click_oldleft and not click_left and Viewer.gold > 0:
                     # place new cannon
                     #Cannon(pos=pygame.math.Vector2(x=pygame.mouse.get_pos()[0],y=pygame.mouse.get_pos()[1] ))
-                    Cannon(mousevector, starttime=self.playtime)
+                    if pressed_keys[pygame.K_r]:
+                        Rocketlauncher(mousevector, starttime=self.playtime)
+                    else:
+                        Cannon(mousevector, starttime=self.playtime)
                     Viewer.gold -= 1
+               
 
             elif self.modus == "play":
                 if click_oldleft and not click_left and self.gold >= 10:
@@ -1296,7 +1361,7 @@ class Viewer:
                         m = pygame.math.Vector2(1, 0)
                         m.from_polar((random.random() * 0.2 + 5.9, random.randint(0, 360)))
                         a = m.as_polar()[1]
-                        Spark2(pos=pygame.math.Vector2(beam.pos.x, beam.pos.y),
+                        Spark(pos=pygame.math.Vector2(beam.pos.x, beam.pos.y),
                                move=m,
                                angle=a,
                                color=ship.color,
