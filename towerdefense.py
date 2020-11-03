@@ -13,6 +13,7 @@ import pygame
 import pygame.freetype  # not automatically loaded when importing pygame!
 import pygame.gfxdraw
 import random
+import math
 
 
 # import os
@@ -760,10 +761,10 @@ class Cannon(VectorSprite):
         m.from_polar((Beam.speed, angle))
         barrel = pygame.math.Vector2(1, 0)
         barrel.from_polar((self.width // 2, angle))
-        Beam(pos=pygame.math.Vector2(self.pos.x, self.pos.y) + barrel,
+        SmartRocket(pos=pygame.math.Vector2(self.pos.x, self.pos.y) + barrel,
              move=m,
              angle=angle,
-             max_distance=self.shooting_radius_max - self.width // 2,
+             max_distance=10 * self.shooting_radius_max - self.width // 2,
              color=(222, 0, 111))
 
     def create_image(self):
@@ -899,6 +900,21 @@ class Rocket(Beam):
         delta_angle = random.choice((-3,-2,-1,0,0,0,0,0,0,1,2,3))
         self.move.rotate_ip(delta_angle)
         self.rotate(delta_angle)
+
+class SmartRocket(Rocket):
+
+    def update(self, seconds):
+        # self.create_image()
+        VectorSprite.update(self, seconds)
+        if random.random() < 0.7:
+            Smoke(pos=pygame.math.Vector2(self.pos.x, self.pos.y))
+        # tumble
+        #if random.random() < 0.1:
+        #delta_angle = random.choice((-3,-2,-1,0,0,0,0,0,0,1,2,3))
+        delta_angle = math.sin(self.age * 1.5) * 2.1
+        self.move.rotate_ip(delta_angle)
+        self.rotate(delta_angle)
+
 
 class Spark(VectorSprite):
 
