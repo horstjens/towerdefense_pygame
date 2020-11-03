@@ -1190,6 +1190,9 @@ class Viewer:
         monsters_in_wave = 100
         time_for_next_monster = 0
         wave = 1
+        cannonlist = [Cannon, Rocketlauncher, Cannon, Rocketlauncher]
+        cannonlist_index = 0
+        tower = cannonlist[cannonlist_index]
         while running:
             milliseconds = self.clock.tick(self.fps)  #
             seconds = milliseconds / 1000
@@ -1222,6 +1225,19 @@ class Viewer:
                                     max_age=5,
                                     fontsize=23, )
 
+                # ------------ mousewheel ---------
+                if event.type == pygame.MOUSEBUTTONDOWN and self.modus == "cannon":
+                    if event.button == 4:   # mouse wheel down?
+                        cannonlist_index += 1
+                        if cannonlist_index >= len(cannonlist):
+                            cannonlist_index = 0  # first element of list
+                    elif event.button == 5:  # mouse wheel up ?
+                        cannonlist_index -= 1
+                        if cannonlist_index < 0:
+                            cannonlist_index = len(cannonlist) - 1 # last element of list
+                            # do other stuff
+                    #print("index is now: ", cannonlist_index)
+                    tower = cannonlist[cannonlist_index]
             # ------------ pressed keys ------
             pressed_keys = pygame.key.get_pressed()
 
@@ -1248,10 +1264,14 @@ class Viewer:
                 if click_oldleft and not click_left:
                     Viewer.points.insert(-1, pygame.mouse.get_pos())
             elif self.modus == "cannon":
+                # place what? cannon or rocketlauncher or ....
+                write(self.screen, f"mousewheel: change. Left-click: place {tower.__name__}",
+                      x=5, y=5, origin="topleft", font_size=12)
+
                 # ----- cannon-range circle around mousepointer when in cannon modus:
-                pygame.draw.circle(self.screen, (200, 200, 200), pygame.mouse.get_pos(), Cannon.shooting_radius_max, 1)
-                pygame.draw.circle(self.screen, (200, 200, 200), pygame.mouse.get_pos(), Cannon.shooting_radius_min, 1)
-                pygame.draw.circle(self.screen, (0, 200, 00), pygame.mouse.get_pos(), Cannon.exclusive_radius)
+                pygame.draw.circle(self.screen, (200, 200, 200), pygame.mouse.get_pos(), tower.shooting_radius_max, 1)
+                pygame.draw.circle(self.screen, (200, 200, 200), pygame.mouse.get_pos(), tower.shooting_radius_min, 1)
+                pygame.draw.circle(self.screen, (0, 200, 00), pygame.mouse.get_pos(), tower.exclusive_radius)
                 # --- too close to other cannon ?
                 min_distance, othercannon = Viewer.width * 2, None
                 for c in self.cannongroup:
@@ -1270,10 +1290,11 @@ class Viewer:
                 if ok and click_oldleft and not click_left and Viewer.gold > 0:
                     # place new cannon
                     #Cannon(pos=pygame.math.Vector2(x=pygame.mouse.get_pos()[0],y=pygame.mouse.get_pos()[1] ))
-                    if pressed_keys[pygame.K_r]:
-                        Rocketlauncher(mousevector, starttime=self.playtime)
-                    else:
-                        Cannon(mousevector, starttime=self.playtime)
+                    #if pressed_keys[pygame.K_r]:
+                    #    Rocketlauncher(mousevector, starttime=self.playtime)
+                    #else:
+                    #    Cannon(mousevector, starttime=self.playtime)
+                    tower(mousevector, starttime=self.playtime)
                     Viewer.gold -= 1
                
 
